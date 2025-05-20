@@ -50,8 +50,8 @@ class Astronaut:
         self.height = 60
         self.jumping = False
         self.jump_velocity = 0
-        self.gravity = 1
-        self.jump_power = -15
+        self.gravity = 0.7
+        self.jump_power = -12
 
         # Imagem do astronauta
         image_path = os.path.join('img', 'astro1.png')
@@ -172,9 +172,16 @@ def game_loop():
             astronaut.update()
 
             # Gera novos satélites
-            if len(satellites) == 0 or satellites[-1].x < SCREEN_WIDTH - 300:
-                if random.random() < 0.02:
-                    satellites.append(Satellite())
+            if len(satellites) == 0 or satellites[-1].x < SCREEN_WIDTH - random.randint(200, 400):
+                if random.random() < 0.03:  # Aumenta a chance de spawn
+                    # Chance de spawnar dois satélites juntos
+                    if random.random() < 0.3:  # 30% de chance de spawnar dois
+                        satellites.append(Satellite())
+                        second_satellite = Satellite()
+                        second_satellite.x = SCREEN_WIDTH + 50  # Espaçamento entre os satélites
+                        satellites.append(second_satellite)
+                    else:
+                        satellites.append(Satellite())
 
             for satellite in satellites[:]:
                 satellite.update()
@@ -228,5 +235,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#Jogo do astronauta

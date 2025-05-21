@@ -100,6 +100,8 @@ class Astronaut:
                 self.jumping = False
                 self.jump_velocity = 0
                 self.animation_state = 0  # Reseta para a animação de corrida
+                self.animation_timer = 0  # Reseta o timer da animação
+                self.current_image = self.image_right  # Força a primeira frame da corrida
         else:
             # Atualiza a animação de corrida
             self.animation_timer += self.animation_speed

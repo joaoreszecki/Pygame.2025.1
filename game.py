@@ -54,7 +54,7 @@ class Astronaut:
         self.jump_power = -12
 
         # Imagem do astronauta
-        image_path = os.path.join('img', 'astro1.png')
+        image_path = os.path.join('img', 'astro_direita.png')
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
 

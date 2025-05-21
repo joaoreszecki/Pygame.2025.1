@@ -58,12 +58,14 @@ class Astronaut:
         self.image_right = pygame.transform.scale(self.image_right, (self.width, self.height))
         self.image_left = pygame.image.load(os.path.join('img', 'astro_esquerda.png'))
         self.image_left = pygame.transform.scale(self.image_left, (self.width, self.height))
+        self.image_still = pygame.image.load(os.path.join('img', 'astro_parado.png'))
+        self.image_still = pygame.transform.scale(self.image_still, (self.width, self.height))
         
         # Variáveis para animação
         self.current_image = self.image_right
         self.animation_timer = 0
-        self.animation_speed = 0.2  # Velocidade da animação
-        self.is_right = True
+        self.animation_speed = 0.05  # Velocidade da animação mais suave
+        self.animation_state = 0  # 0: direita, 1: parado, 2: esquerda, 3: parado
 
     def jump(self):
         if not self.jumping:
@@ -84,8 +86,15 @@ class Astronaut:
         self.animation_timer += self.animation_speed
         if self.animation_timer >= 1:
             self.animation_timer = 0
-            self.is_right = not self.is_right
-            self.current_image = self.image_right if self.is_right else self.image_left
+            self.animation_state = (self.animation_state + 1) % 4
+            if self.animation_state == 0:
+                self.current_image = self.image_right
+            elif self.animation_state == 1:
+                self.current_image = self.image_still
+            elif self.animation_state == 2:
+                self.current_image = self.image_left
+            else:
+                self.current_image = self.image_still
 
     def draw(self):
         screen.blit(self.current_image, (self.x, self.y))

@@ -24,6 +24,10 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Astro Jump")
 clock = pygame.time.Clock()
 
+# background
+background = pygame.image.load(os.path.join('img', 'spacewallpaper.png'))
+background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
 # Classe do botão
 class Button:
     def __init__(self, x, y, width, height, text, color):
@@ -242,7 +246,7 @@ def game_loop():
                     game_over = True
 
         # Tela do jogo
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))  # Desenha o background
 
         # Chão
         pygame.draw.rect(screen, GRAY, (0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, GROUND_HEIGHT))
@@ -255,11 +259,11 @@ def game_loop():
             satellite.draw()
 
         # Pontuação
-        score_text = font.render(f"Pontuação: {score}", True, BLACK)
+        score_text = font.render(f"Pontuação: {score}", True, WHITE)  # Mudei para branco para melhor visibilidade
         screen.blit(score_text, (10, 10))
 
         if game_over:
-            game_over_text = font.render("Fim de Jogo! Clique para voltar ao menu", True, BLACK)
+            game_over_text = font.render("Fim de Jogo! Clique para voltar ao menu", True, WHITE)  # Mudei para branco
             screen.blit(game_over_text, (SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2))
 
         pygame.display.flip()

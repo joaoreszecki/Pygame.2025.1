@@ -53,10 +53,17 @@ class Astronaut:
         self.gravity = 0.7
         self.jump_power = -12
 
-        # Imagem do astronauta
-        image_path = os.path.join('img', 'astro_direita.png')
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        # Carrega as imagens do astronauta
+        self.image_right = pygame.image.load(os.path.join('img', 'astro_direita.png'))
+        self.image_right = pygame.transform.scale(self.image_right, (self.width, self.height))
+        self.image_left = pygame.image.load(os.path.join('img', 'astro_esquerda.png'))
+        self.image_left = pygame.transform.scale(self.image_left, (self.width, self.height))
+        
+        # Variáveis para animação
+        self.current_image = self.image_right
+        self.animation_timer = 0
+        self.animation_speed = 0.2  # Velocidade da animação
+        self.is_right = True
 
     def jump(self):
         if not self.jumping:
@@ -72,9 +79,16 @@ class Astronaut:
                 self.y = SCREEN_HEIGHT - GROUND_HEIGHT - self.height
                 self.jumping = False
                 self.jump_velocity = 0
+        
+        # Atualiza a animação
+        self.animation_timer += self.animation_speed
+        if self.animation_timer >= 1:
+            self.animation_timer = 0
+            self.is_right = not self.is_right
+            self.current_image = self.image_right if self.is_right else self.image_left
 
     def draw(self):
-        screen.blit(self.image, (self.x, self.y))
+        screen.blit(self.current_image, (self.x, self.y))
 
 # Classe do satélite (obstáculo)
 class Satellite:

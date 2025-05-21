@@ -60,41 +60,60 @@ class Astronaut:
         self.image_left = pygame.transform.scale(self.image_left, (self.width, self.height))
         self.image_still = pygame.image.load(os.path.join('img', 'astro_parado.png'))
         self.image_still = pygame.transform.scale(self.image_still, (self.width, self.height))
+        self.image_crouch = pygame.image.load(os.path.join('img', 'astro_agachado.png'))
+        self.image_crouch = pygame.transform.scale(self.image_crouch, (self.width, self.height))
+        self.image_jump = pygame.image.load(os.path.join('img', 'astro_cima.png'))
+        self.image_jump = pygame.transform.scale(self.image_jump, (self.width, self.height))
         
         # Variáveis para animação
         self.current_image = self.image_right
         self.animation_timer = 0
         self.animation_speed = 0.05  # Velocidade da animação mais suave
         self.animation_state = 0  # 0: direita, 1: parado, 2: esquerda, 3: parado
+        self.jump_animation_timer = 0
+        self.jump_animation_speed = 0.1  # Velocidade da animação do pulo
+        self.jump_animation_state = 0  # 0: agachado, 1: pulando
 
     def jump(self):
         if not self.jumping:
             self.jump_velocity = self.jump_power
             self.jumping = True
+            self.jump_animation_state = 0
+            self.jump_animation_timer = 0
+            self.current_image = self.image_crouch
 
     def update(self):
         if self.jumping:
             self.y += self.jump_velocity
             self.jump_velocity += self.gravity
 
+            # Atualiza a animação do pulo
+            self.jump_animation_timer += self.jump_animation_speed
+            if self.jump_animation_timer >= 1:
+                self.jump_animation_timer = 0
+                if self.jump_animation_state == 0:
+                    self.current_image = self.image_jump
+                    self.jump_animation_state = 1
+
             if self.y >= SCREEN_HEIGHT - GROUND_HEIGHT - self.height:
                 self.y = SCREEN_HEIGHT - GROUND_HEIGHT - self.height
                 self.jumping = False
                 self.jump_velocity = 0
-        
-        # Atualiza a animação
-        self.animation_timer += self.animation_speed
-        if self.animation_timer >= 1:
-            self.animation_timer = 0
-            self.animation_state = (self.animation_state + 1) % 4
-            if self.animation_state == 0:
-                self.current_image = self.image_right
-            elif self.animation_state == 1:
-                self.current_image = self.image_still
-            elif self.animation_state == 2:
-                self.current_image = self.image_left
-            else:
-                self.current_image = self.image_still
+                self.animation_state = 0  # Reseta para a animação de corrida
+        else:
+            # Atualiza a animação de corrida
+            self.animation_timer += self.animation_speed
+            if self.animation_timer >= 1:
+                self.animation_timer = 0
+                self.animation_state = (self.animation_state + 1) % 4
+                if self.animation_state == 0:
+                    self.current_image = self.image_right
+                elif self.animation_state == 1:
+                    self.current_image = self.image_still
+                elif self.animation_state == 2:
+                    self.current_image = self.image_left
+                else:
+                    self.current_image = self.image_still
 
     def draw(self):
         screen.blit(self.current_image, (self.x, self.y))

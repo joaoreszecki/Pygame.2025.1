@@ -148,26 +148,28 @@ class Satellite:
 def show_menu():
     start_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 - 50, 200, 50, "Iniciar Jogo", BLUE)
     instructions_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 50, 200, 50, "Instruções", BLUE)
-    back_button = None
+    back_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT - 100, 200, 50, "Voltar", BLUE)
+    showing_instructions = False
 
     while True:
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if back_button and back_button.is_clicked(event.pos):
-                    return "menu"
-                if start_button.is_clicked(event.pos):
-                    return "start"
-                if instructions_button.is_clicked(event.pos):
-                    back_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT - 100, 200, 50, "Voltar", BLUE)
-                    return "instructions"
+                if showing_instructions:
+                    if back_button.is_clicked(event.pos):
+                        showing_instructions = False
+                else:
+                    if start_button.is_clicked(event.pos):
+                        return "start"
+                    if instructions_button.is_clicked(event.pos):
+                        showing_instructions = True
 
-        if back_button:
-            back_button.draw()
+        if showing_instructions:
+            # Desenha as instruções
             font = pygame.font.Font(None, 36)
             instructions = [
                 "Como jogar:",
@@ -178,13 +180,17 @@ def show_menu():
                 "Pressione ESPAÇO para reiniciar após perder"
             ]
             for i, line in enumerate(instructions):
-                text = font.render(line, True, BLACK)
+                text = font.render(line, True, WHITE)
                 screen.blit(text, (50, 50 + i * 40))
+            
+            # Desenha o botão voltar
+            back_button.draw()
         else:
+            # Desenha o menu principal
             start_button.draw()
             instructions_button.draw()
             font = pygame.font.Font(None, 74)
-            title = font.render("Astro Jump", True, BLACK)
+            title = font.render("Astro Jump", True, WHITE)
             screen.blit(title, (SCREEN_WIDTH//2 - 150, 50))
 
         pygame.display.flip()

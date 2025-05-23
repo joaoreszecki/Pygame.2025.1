@@ -2,6 +2,7 @@ import pygame
 import random
 import sys
 import os
+import json
 
 # Inicia o Pygame
 pygame.init()
@@ -27,6 +28,27 @@ clock = pygame.time.Clock()
 # background
 background = pygame.image.load(os.path.join('img', 'spacewallpaper.png'))
 background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Função para carregar pontuações
+def load_scores():
+    try:
+        with open('scores.json', 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+# Função para salvar pontuações
+def save_scores(scores):
+    with open('scores.json', 'w') as f:
+        json.dump(scores, f)
+
+# Função para adicionar nova pontuação
+def add_score(name, score):
+    scores = load_scores()
+    scores.append({'name': name, 'score': score})
+    scores.sort(key=lambda x: x['score'], reverse=True)
+    scores = scores[:5]  # Mantém apenas as top 4 pontuações
+    save_scores(scores)
 
 # Classe do botão
 class Button:
@@ -144,10 +166,91 @@ class Satellite:
     def draw(self):
         screen.blit(self.image, (self.x, self.y))
 
+# Classe para input de texto
+class TextInput:
+    def __init__(self, x, y, width, height, font_size=36):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = ""
+        self.font = pygame.font.Font(None, font_size)
+        self.active = False
+        self.color = WHITE
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.active = self.rect.collidepoint(event.pos)
+        if event.type == pygame.KEYDOWN and self.active:
+            if event.key == pygame.K_RETURN:
+                return True
+            elif event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            else:
+                if len(self.text) < 10:  # Limita o nome a 10 caracteres
+                    self.text += event.unicode
+        return False
+
+    def draw(self):
+        pygame.draw.rect(screen, GRAY, self.rect, 2)
+        text_surface = self.font.render(self.text, True, self.color)
+        screen.blit(text_surface, (self.rect.x + 5, self.rect.y + 5))
+
+# Tela de input do nome
+def show_name_input():
+    text_input = TextInput(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2, 200, 40)
+    font = pygame.font.Font(None, 36)
+    instruction = font.render("Digite seu nome (máx 10 caracteres):", True, WHITE)
+    
+    while True:
+        screen.blit(background, (0, 0))
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if text_input.handle_event(event):
+                return text_input.text
+
+        screen.blit(instruction, (SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 50))
+        text_input.draw()
+        
+        pygame.display.flip()
+        clock.tick(FPS)
+
+# Tela de pontuações
+def show_scores():
+    back_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT - 100, 200, 50, "Voltar", BLUE)
+    scores = load_scores()
+    
+    while True:
+        screen.blit(background, (0, 0))
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button.is_clicked(event.pos):
+                    return
+
+        # Título
+        font = pygame.font.Font(None, 74)
+        title = font.render("Top 4 Pontuações", True, WHITE)
+        screen.blit(title, (SCREEN_WIDTH//2 - 200, 50))
+
+        # Lista de pontuações
+        font = pygame.font.Font(None, 36)
+        for i, score in enumerate(scores):
+            text = font.render(f"{i+1}. {score['name']}: {score['score']}", True, WHITE)
+            screen.blit(text, (SCREEN_WIDTH//2 - 100, 150 + i * 40))
+
+        back_button.draw()
+        pygame.display.flip()
+        clock.tick(FPS)
+
 # Tela do menu principal
 def show_menu():
     start_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 - 50, 200, 50, "Iniciar Jogo", BLUE)
     instructions_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 50, 200, 50, "Instruções", BLUE)
+    scores_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 150, 200, 50, "Pontuações", BLUE)
     back_button = Button(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT - 100, 200, 50, "Voltar", BLUE)
     showing_instructions = False
 
@@ -167,6 +270,8 @@ def show_menu():
                         return "start"
                     if instructions_button.is_clicked(event.pos):
                         showing_instructions = True
+                    if scores_button.is_clicked(event.pos):
+                        show_scores()
 
         if showing_instructions:
             # Desenha as instruções
@@ -183,12 +288,12 @@ def show_menu():
                 text = font.render(line, True, WHITE)
                 screen.blit(text, (50, 50 + i * 40))
             
-            # Desenha o botão voltar
             back_button.draw()
         else:
             # Desenha o menu principal
             start_button.draw()
             instructions_button.draw()
+            scores_button.draw()
             font = pygame.font.Font(None, 74)
             title = font.render("Astro Jump", True, WHITE)
             screen.blit(title, (SCREEN_WIDTH//2 - 150, 50))
@@ -203,6 +308,7 @@ def game_loop():
     score = 0
     game_over = False
     font = pygame.font.Font(None, 36)
+    player_name = show_name_input()  # Pede o nome do jogador antes de começar
 
     while True:
         for event in pygame.event.get():
@@ -212,14 +318,13 @@ def game_loop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if game_over:
-                        astronaut = Astronaut()
-                        satellites = []
-                        score = 0
-                        game_over = False
+                        add_score(player_name, score)  # Salva a pontuação
+                        return  # Volta ao menu
                     else:
                         astronaut.jump()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if game_over:
+                    add_score(player_name, score)  # Salva a pontuação
                     return  # Volta ao menu
 
         if not game_over:
@@ -265,11 +370,11 @@ def game_loop():
             satellite.draw()
 
         # Pontuação
-        score_text = font.render(f"Pontuação: {score}", True, WHITE)  # Mudei para branco para melhor visibilidade
+        score_text = font.render(f"Pontuação: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
         if game_over:
-            game_over_text = font.render("Fim de Jogo! Clique para voltar ao menu", True, WHITE)  # Mudei para branco
+            game_over_text = font.render("Fim de Jogo! Clique para voltar ao menu", True, WHITE)
             screen.blit(game_over_text, (SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2))
 
         pygame.display.flip()

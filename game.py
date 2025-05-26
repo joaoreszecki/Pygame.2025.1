@@ -236,6 +236,7 @@ def show_scores():
         title = font.render("Top 4 Pontuações", True, WHITE)
         screen.blit(title, (SCREEN_WIDTH//2 - 200, 50))
 
+        pygame.draw.rect(screen, pygame.Color(200,200,200), (200,150,400,150))
         # Lista de pontuações
         font = pygame.font.Font(None, 36)
         for i, score in enumerate(scores):

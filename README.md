@@ -13,4 +13,4 @@ git clone https://github.com/joaoreszecki/pygame.git
 - Finalmente, após clonar o repositório, apenas execute o arquivo "game.py" e você estará pronto para jogar!
 
 # Link do nosso Video:
-[Astro jump]()
+[Astro jump](https://youtu.be/mIEw9-hj76c)
